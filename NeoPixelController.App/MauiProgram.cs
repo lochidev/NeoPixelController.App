@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components.WebView.Maui;
-using NeoPixelController.App.Data;
 
 namespace NeoPixelController.App;
 
@@ -14,14 +13,10 @@ public static class MauiProgram
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 			});
-
 		builder.Services.AddMauiBlazorWebView();
 #if DEBUG
 		builder.Services.AddBlazorWebViewDeveloperTools();
 #endif
-
-		builder.Services.AddSingleton<WeatherForecastService>();
-
 		return builder.Build();
 	}
 }

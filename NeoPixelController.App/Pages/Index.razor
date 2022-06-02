@@ -1,7 +1,92 @@
 ﻿@page "/"
+@using System.Net.Sockets
+<div class="p-8 space-y-5 pl-0">
+    <h1>Send a command</h1>
 
-<h1>Hello, world!</h1>
+    <label class="text-2xl block mb-3 font-bold">Command to send</label>
+    <input @onkeyup="SearchForCommands"
+           @bind="Command"
+           @bind:event="oninput"
+           class="user-input text-xl" />
 
-Welcome to your new app.
+    <div class="w-full bg-gray-800 border-2 border-green-500 p-3 rounded outline-none focus:border-purple-500">
+        @if (commandSuggestions is not null && commandSuggestions.Count() > 0)
+        {
+            <h3 class="font-bold pt-0">Suggestions</h3>
+            @foreach (var command in commandSuggestions)
+            {
+                <button type="button" class="focus:outline-none block mt-1 p-1 pl-0 hover:bg-gray-700 outline-none text-xl" @onclick="@(() => Command = command)">@command</button>
+            }
+        }
+        else
+        {
+            <h3 class="font-bold m-1">Nothing Found :(</h3>
+        }
+    </div>
+</div>
+<button target="_blank" class="user-button" @onclick="SendCommand">Send command</button>
+<button target="_blank" class="user-button" @onclick="ToggleConnection">@StatusLabel</button>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+@code {
+    private string Server = "192.168.8.184";
+    private int Port = 24;
+    private string Command = string.Empty;
+    private string response = null;
+    private string error = null;
+    private TcpClient tcpClient = null;
+    private string StatusLabel = "Connect";
+    private bool isBtnDisabled = false;
+    private IEnumerable<string> commandSuggestions = null;
+    private HashSet<string> Commands = new() { "ping;", "green;", "blue;", "red;", "gold;" };
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        tcpClient = new TcpClient(Server, Port);
+        if (tcpClient.Connected)
+        {
+            StatusLabel = "Disconnect";
+        }
+    }
+    void ToggleConnection()
+    {
+        isBtnDisabled = true;
+        if (tcpClient.Connected)
+        {
+            tcpClient.GetStream().Close();
+            tcpClient.Close();
+            StatusLabel = "Connect";
+        }
+        else
+        {
+            tcpClient = new TcpClient(Server, Port);
+            if (tcpClient.Connected)
+            {
+                StatusLabel = "Disconnect";
+            }
+        }
+        isBtnDisabled = false;
+    }
+    async Task SendCommand()
+    {
+        try
+        {
+            byte[] data = System.Text.Encoding.ASCII.GetBytes(Command);
+            NetworkStream stream = tcpClient.GetStream();
+            await stream.WriteAsync(data, 0, data.Length);
+            //data = new Byte[256]
+            // ;
+            //String responseData = String.Empty;
+            //Int32 bytes = stream.Read(data, 0, data.Length);
+            //response = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+        }
+        catch (Exception e)
+        {
+            error = $"Error: {e}";
+        }
+    }
+    void SearchForCommands()
+    {
+        commandSuggestions = Commands.Where(x => x.Contains(Command));
+    }
+}

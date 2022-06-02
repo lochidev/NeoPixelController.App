@@ -48,6 +48,10 @@
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Data\" />
+	</ItemGroup>
 	<Target Name="CheckForNpm" BeforeTargets="NpmInstall">
 		<Exec Command="npm -v" ContinueOnError="true">
 			<Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
@@ -61,7 +65,6 @@
 
 	<Target Name="BuildCSS" BeforeTargets="Compile">
 		<Exec Command="npm run buildcss:dev" Condition=" '$(Configuration)' == 'Debug' " />
-		<Exec Command="npm cache clean --force" Condition=" '$(Configuration)' == 'Release' " />
 		<Exec Command="npm ci" Condition=" '$(Configuration)' == 'Release' " />
 		<Exec Command="npm run buildcss:release" Condition=" '$(Configuration)' == 'Release' " />
 	</Target>
